@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="mr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IOS & RM Practicals – WSL Ubuntu Guide</title>
+<meta name="description" content="Intelligent Operating Systems & Resource Management – all 10 practicals with WSL Ubuntu commands, C programs, outputs and viva points.">
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#30363d;
+  --text:#e6edf3; --muted:#8b949e; --accent:#e95420; --green:#3fb950;
+  --blue:#58a6ff; --yellow:#d29922; --red:#f85149; --purple:#bc8cff;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6}
+code,pre,.mono{font-family:"Ubuntu Mono","Cascadia Code",Consolas,"Courier New",monospace}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* top bar */
+header.top{position:sticky;top:0;z-index:50;background:rgba(13,17,23,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:10px 16px}
+header.top .brand{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+header.top .brand i{background:var(--accent);color:#fff;border-radius:6px;padding:2px 8px;font-style:normal;font-size:13px}
+#menuBtn{display:none;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:16px;cursor:pointer}
+#search{margin-left:auto;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 12px;width:240px;font-size:14px}
+#search:focus{outline:2px solid var(--accent)}
+
+.layout{display:flex;max-width:1280px;margin:0 auto}
+nav.side{width:290px;flex-shrink:0;position:sticky;top:55px;align-self:flex-start;height:calc(100vh - 55px);overflow:auto;padding:16px;border-right:1px solid var(--border)}
+nav.side h4{margin:14px 0 6px;font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+nav.side a{display:block;padding:7px 10px;border-radius:6px;color:var(--text);font-size:14px}
+nav.side a:hover{background:var(--panel);text-decoration:none}
+nav.side a.active{background:var(--panel2);color:var(--accent);border-left:3px solid var(--accent)}
+nav.side a b{display:inline-block;min-width:26px;color:var(--accent);font-family:"Ubuntu Mono",monospace}
+main{flex:1;min-width:0;padding:24px 28px 80px}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#2c001e,#5e2750 55%,#e95420);border-radius:14px;padding:30px;margin-bottom:28px}
+.hero h1{margin:0 0 6px;font-size:28px}
+.hero p{margin:4px 0;color:#f3dbe9}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{background:rgba(255,255,255,.14);padding:4px 12px;border-radius:99px;font-size:13px}
+
+/* cards */
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:26px}
+section.card h2{margin:0 0 6px;font-size:22px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+section.card h2 .num{background:var(--accent);color:#fff;border-radius:8px;padding:0 10px;font-size:15px;font-weight:700}
+.aim{color:var(--muted);margin:0 0 14px}
+.aim b{color:var(--yellow)}
+h3{font-size:15px;margin:20px 0 8px;color:var(--blue)}
+p.t{margin:8px 0}
+.warn{background:#3d1f1f;border:1px solid var(--red);border-left:4px solid var(--red);padding:10px 14px;border-radius:8px;margin:12px 0}
+.tip{background:#10291a;border:1px solid var(--green);border-left:4px solid var(--green);padding:10px 14px;border-radius:8px;margin:12px 0}
+ul.vl{margin:6px 0 0 18px;padding:0}
+ul.vl li{margin:3px 0}
+
+/* terminal */
+.term{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:10px 0 14px;background:#300a24}
+.term.out{background:#0b0f14}
+.term.cpp{background:#0d1117}
+.term-bar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:#3a3a3a;font-size:12px;color:#ddd}
+.term.out .term-bar{background:#262b33}
+.term.cpp .term-bar{background:#21262d}
+.dots{display:flex;gap:6px}
+.dots span{width:11px;height:11px;border-radius:50%;display:inline-block}
+.dots span:nth-child(1){background:#ff5f56}.dots span:nth-child(2){background:#ffbd2e}.dots span:nth-child(3){background:#27c93f}
+.term-title{flex:1;text-align:center;font-family:"Ubuntu Mono",monospace;color:#cfcfcf}
+.btns{display:flex;gap:6px}
+.btn{background:#4a4a4a;color:#fff;border:0;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--accent)}
+.btn.ok{background:var(--green)!important}
+.btn.alt{background:#2f5d8a}
+pre{margin:0;padding:12px 16px;overflow:auto;font-size:14.5px;line-height:1.5;color:#e8e8e8;tab-size:4}
+.line{display:block;white-space:pre}
+.term:not(.out):not(.cpp) .line:not(.cm)::before{content:"user@wsl:~/iosrm$ ";color:#8ae234;font-weight:700;user-select:none}
+.term:not(.out):not(.cpp) .line.blank::before{content:""}
+.cm{color:#8b949e}
+.k{color:#ff7b72}.s{color:#a5d6ff}.n{color:#79c0ff}.pp{color:#d2a8ff}.ty{color:#ffa657}.c2{color:#8b949e}
+.term.out pre{color:#c9d1d9}
+
+/* tables */
+.tw{overflow:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--panel2);color:var(--accent)}
+td code{color:var(--green)}
+
+footer{text-align:center;color:var(--muted);padding:30px 0;font-size:13px}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:9px 18px;border-radius:99px;font-weight:600;transition:.25s;z-index:100}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#top{position:fixed;right:18px;bottom:18px;background:var(--accent);color:#fff;border:0;border-radius:50%;width:42px;height:42px;font-size:18px;cursor:pointer}
+
+@media(max-width:860px){
+  #menuBtn{display:block}
+  nav.side{position:fixed;left:0;top:55px;z-index:40;background:var(--bg);transform:translateX(-100%);transition:.25s;width:280px}
+  nav.side.open{transform:none}
+  main{padding:16px 12px 80px}
+  #search{width:150px}
+  .hero h1{font-size:22px}
+  pre{font-size:13px}
+  .term-title{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <button id="menuBtn" aria-label="Menu">☰</button>
+  <div class="brand"><i>$_</i> IOS & RM · WSL Guide</div>
+  <input id="search" type="search" placeholder="Search… (e.g. grep, chmod)">
+</header>
+
+<div class="layout">
+  <nav class="side" id="side"></nav>
+  <main id="main"></main>
+</div>
+<button id="top" title="Top">↑</button>
+<div id="toast">Copied ✔</div>
+
+<script>
+/* =========================================================
+   DATA – each practical: id, title, aim, blocks[]
+   block types: text | cmd | out | code | table | warn | tip | viva
+   ========================================================= */
+const P = [];
+
+/* ---------- SETUP ---------- */
+P.push({id:"setup",num:"S",title:"WSL Setup (one-time)",aim:"WSL Ubuntu madhe GCC install karun working folder banava.",blocks:[
+ {t:"text",c:"WSL (Windows Subsystem for Linux) mule Windows var Linux chalta. Start menu madhun <b>Ubuntu</b> ughda ani khalche commands type kara."},
+ {t:"cmd",label:"One-time setup",c:String.raw`sudo apt update
+sudo apt install build-essential
+mkdir -p ~/iosrm
+cd ~/iosrm`},
+ {t:"tip",c:"build-essential madhe GCC (C compiler) yete. Password type kartana characters disat nahit – te normal ahe."},
+ {t:"cmd",label:"C program create + run (nano)",c:String.raw`nano p5.c
+# Program paste kara -> Ctrl+O -> Enter -> Ctrl+X
+gcc p5.c -o p5
+./p5`},
+ {t:"text",c:"<b>Shortcut:</b> pratyek C program chya jawal <i>“One-shot paste”</i> button ahe – to dabun Ubuntu terminal madhe paste kela ki file auto-create hote (nano chi garaj nahi)."},
+ {t:"warn",c:"<b>Safety:</b> Practical 8 che commands accounts create/delete kartat. Fakt <b>student1</b> ani <b>labgroup</b> hech test names vapra. Swatacha account kadhi delete karu naka."}
+]});
+
+/* ---------- 1 ---------- */
+P.push({id:"p1",num:1,title:"General-Purpose Linux Commands",aim:"Demonstrate common Linux commands for file and directory management.",blocks:[
+ {t:"cmd",label:"Commands",c:String.raw`cd ~/iosrm
+pwd
+ls
+mkdir demo1
+cd demo1
+touch a.txt
+echo "Hello Linux" > a.txt
+cat a.txt
+cp a.txt b.txt
+mv b.txt c.txt
+ls
+rm c.txt
+cd ..`},
+ {t:"out",label:"Sample output",c:String.raw`/home/yourusername/iosrm
+Hello Linux
+a.txt  c.txt`},
+ {t:"text",c:"Exact path ani file-list order vegla asu shakto. Important: <code>cat</code> “Hello Linux” print karto, <code>cp</code> b.txt banavto, <code>mv</code> tyache c.txt karto, <code>rm</code> c.txt kadhto."},
+ {t:"table",h:["Command","Meaning"],r:[
+  ["pwd","Current working directory dakhavto."],["ls","Files ani directories list karto."],
+  ["mkdir demo1","demo1 directory banavto."],["cd demo1","demo1 madhe jato."],
+  ["touch a.txt","Empty file banavto (nasel tar)."],["echo \"Hello Linux\" > a.txt","a.txt madhe text lihito (junaa content replace)."],
+  ["cat a.txt","File content dakhavto."],["cp a.txt b.txt","a.txt chi copy b.txt."],
+  ["mv b.txt c.txt","Rename / move."],["rm c.txt","File delete (kalji ghya)."],["cd ..","Parent directory madhe jato."]]},
+ {t:"viva",c:["Directory = folder; file = data store karto.","cp original thevun copy karto; mv move/rename karto; rm delete karto."]}
+]});
+
+/* ---------- 2 ---------- */
+P.push({id:"p2",num:2,title:"File and Directory Operations",aim:"Demonstrate mkdir, cd, ls, touch, cat, cp and mv.",blocks:[
+ {t:"cmd",label:"Commands",c:String.raw`cd ~/iosrm
+mkdir practical2
+cd practical2
+touch notes.txt
+echo "Operating System Practical" > notes.txt
+cat notes.txt
+cp notes.txt copy.txt
+ls
+mv copy.txt final.txt
+ls
+cd ..`},
+ {t:"out",label:"Sample output",c:String.raw`Operating System Practical
+copy.txt  notes.txt
+final.txt  notes.txt`},
+ {t:"text",c:"Pahila <code>ls</code> copy.txt + notes.txt dakhavto. <code>mv</code> nantar dusra <code>ls</code> final.txt + notes.txt dakhavto."},
+ {t:"viva",c:["mkdir – directory banavto; cd – directory badalto; ls – list; touch – file create; cat – content dakhavto; cp – copy; mv – move/rename."]}
+]});
+
+/* ---------- 3 ---------- */
+P.push({id:"p3",num:3,title:"File Permissions and Ownership",aim:"Demonstrate chmod, chown and chgrp.",blocks:[
+ {t:"cmd",label:"Commands",c:String.raw`cd ~/iosrm
+touch permission.txt
+ls -l permission.txt
+chmod 644 permission.txt
+ls -l permission.txt
+sudo chown "$USER" permission.txt
+sudo chgrp "$(id -gn)" permission.txt
+ls -l permission.txt`},
+ {t:"out",label:"Sample output",c:String.raw`-rw-r--r-- 1 user user 0 Oct 28 09:50 permission.txt`},
+ {t:"text",c:"Permission values: <b>r=4, w=2, x=1</b>. 7 = rwx, 6 = rw-, 5 = r-x, 4 = r--."},
+ {t:"table",h:["Group","Digit","Meaning"],r:[["Owner","6 = 4 + 2","Read + Write"],["Group","4","Read only"],["Others","4","Read only"]]},
+ {t:"viva",c:["chmod – permissions badalto; chown – owner badalto; chgrp – group badalto.","sudo – administrator privileges ne command chalavto.","-rw-r--r-- = 644."]}
+]});
+
+/* ---------- 4 ---------- */
+P.push({id:"p4",num:4,title:"Process Monitoring, States and PCB",aim:"Monitor Linux processes and explain process states and the Process Control Block (PCB).",blocks:[
+ {t:"cmd",label:"Commands",c:String.raw`ps
+ps -ef
+top
+# top madhun baher yenyasathi: q dabva`},
+ {t:"out",label:"Sample ps output",c:String.raw`PID   TTY      TIME     CMD
+1201  pts/0    00:00:00 bash
+1250  pts/0    00:00:00 ps`},
+ {t:"table",h:["State","Meaning"],r:[["New","Process create hot ahe."],["Ready","CPU chi vaat pahat ahe."],["Running","CPU execute karat ahe."],["Waiting / Blocked","I/O kiwa event chi vaat."],["Terminated","Process sampla."]]},
+ {t:"text",c:"<b>PCB (Process Control Block)</b> – OS chi data structure jyat process chi mahiti astey: PID, state, program counter, CPU registers, scheduling info, memory info."},
+ {t:"viva",c:["ps – process info; ps -ef – detailed list; top – live view.","PID = Process ID."]}
+]});
+
+/* ---------- 5 ---------- */
+P.push({id:"p5",num:5,title:"Linux System Calls in C",aim:"Write and execute a C program using open(), write(), read() and close().",blocks:[
+ {t:"code",file:"p5.c",c:String.raw`#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+ 
+int main()
+{
+    int fd, n;
+    char text[100];
+ 
+    fd = open("data.txt", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd == -1)
+    {
+        perror("open");
+        return 1;
+    }
+ 
+    write(fd, "Hello Linux\n", 12);
+    close(fd);
+ 
+    fd = open("data.txt", O_RDONLY);
+    if (fd == -1)
+    {
+        perror("open");
+        return 1;
+    }
+ 
+    n = read(fd, text, 99);
+    if (n == -1)
+    {
+        perror("read");
+        close(fd);
+        return 1;
+    }
+ 
+    text[n] = '\0';
+    printf("%s", text);
+    close(fd);
+ 
+    return 0;
+}`},
+ {t:"cmd",label:"Compile & run",c:String.raw`gcc p5.c -o p5
+./p5`},
+ {t:"out",label:"Output",c:String.raw`Hello Linux`},
+ {t:"text",c:"<b>Step-by-step:</b>"},
+ {t:"viva",c:["open() – data.txt create/open karto; O_TRUNC junaa content clear karto.","write() – “Hello Linux” + newline file madhe lihito.","close() – file descriptor band karto.","open() – same file read-only ughadto.","read() – bytes array <code>text</code> madhe vachto.","text[n]='\\0' – string terminator; printf() display karto.","File descriptor = open() ne return kelela lahan integer jo opened file identify karto."]}
+]});
+
+/* ---------- 6 ---------- */
+P.push({id:"p6",num:6,title:"Text Processing and Searching",aim:"Demonstrate sort, grep, awk, wc and find.",blocks:[
+ {t:"cmd",label:"Create sample data",c:String.raw`cd ~/iosrm
+printf "Ravi 80\nAmit 65\nNeha 90\nRavi 75\n" > marks.txt
+cat marks.txt`},
+ {t:"cmd",label:"1. sort",c:String.raw`sort marks.txt`},
+ {t:"out",label:"Output",c:String.raw`Amit 65
+Neha 90
+Ravi 75
+Ravi 80`},
+ {t:"cmd",label:"2. grep",c:String.raw`grep "Ravi" marks.txt`},
+ {t:"out",label:"Output",c:String.raw`Ravi 80
+Ravi 75`},
+ {t:"cmd",label:"3. awk (column 1)",c:String.raw`awk '{print $1}' marks.txt`},
+ {t:"out",label:"Output",c:String.raw`Ravi
+Amit
+Neha
+Ravi`},
+ {t:"cmd",label:"4. wc",c:String.raw`wc marks.txt`},
+ {t:"out",label:"Output",c:String.raw`4 8 33 marks.txt`},
+ {t:"cmd",label:"5. find",c:String.raw`find ~/iosrm -name "marks.txt"`},
+ {t:"out",label:"Output",c:String.raw`/home/yourusername/iosrm/marks.txt`},
+ {t:"viva",c:["sort – lines arrange; grep – pattern search; awk – columns/fields process; wc – lines, words, bytes count; find – files/directories shodhto.","awk madhe $1 = column 1, $2 = column 2."]}
+]});
+
+/* ---------- 7 ---------- */
+P.push({id:"p7",num:7,title:"Archiving and Compression",aim:"Demonstrate archive creation, compression, decompression and extraction using tar and gzip.",blocks:[
+ {t:"cmd",label:"Commands",c:String.raw`cd ~/iosrm
+mkdir archive_demo
+echo "First file" > archive_demo/a.txt
+echo "Second file" > archive_demo/b.txt
+ 
+tar -cvf files.tar archive_demo
+tar -tf files.tar
+gzip -k files.tar
+gunzip -k files.tar.gz
+ 
+mkdir extracted
+tar -xvf files.tar -C extracted
+find extracted -type f`},
+ {t:"out",label:"Sample output (main lines)",c:String.raw`archive_demo/
+archive_demo/a.txt
+archive_demo/b.txt
+archive_demo/
+archive_demo/a.txt
+archive_demo/b.txt
+extracted/archive_demo/a.txt
+extracted/archive_demo/b.txt`},
+ {t:"text",c:"<code>tar -cvf</code> archive banavto · <code>tar -tf</code> content list · <code>gzip -k</code> compress (original thevun) · <code>gunzip -k</code> decompress · <code>tar -xvf</code> extract · <code>-C</code> extract directory."},
+ {t:"viva",c:["Archive = files ek-tr bundle karne; Compression = size kami karne.","tar mainly archiving sathi; gzip compress; gunzip decompress."]}
+]});
+
+/* ---------- 8 ---------- */
+P.push({id:"p8",num:8,title:"Linux User and Group Management",aim:"Add, modify and delete a test user/group and demonstrate safe use of sudo.",blocks:[
+ {t:"warn",c:"<b>Safety:</b> Fakt tumchya WSL madhe chalva. Test names <b>student1</b> ani <b>labgroup</b> chyach vapra. Swatacha account / real system user delete karu naka. <code>userdel -r</code> kalji ne."},
+ {t:"cmd",label:"Commands",c:String.raw`# 1. Create a test group
+sudo groupadd labgroup
+ 
+# 2. Create a test user with a home directory
+sudo useradd -m student1
+ 
+# 3. Set the test user's password
+sudo passwd student1
+ 
+# 4. Add the test user to the supplementary group
+sudo usermod -aG labgroup student1
+ 
+# 5. Verify the user and groups
+id student1
+groups student1
+ 
+# 6. Modify the test user's login shell
+sudo usermod -s /bin/bash student1
+ 
+# 7. Verify account details
+getent passwd student1
+ 
+# 8. Delete the test user and its home directory
+sudo userdel -r student1
+ 
+# 9. Delete the test group
+sudo groupdel labgroup`},
+ {t:"out",label:"Sample output",c:String.raw`uid=1001(student1) gid=1001(student1) groups=1001(student1),1002(labgroup)
+student1 : student1 labgroup`},
+ {t:"table",h:["Command","Purpose"],r:[
+  ["sudo groupadd labgroup","labgroup group banavto."],["sudo useradd -m student1","student1 + home directory banavto."],
+  ["sudo passwd student1","Password set/change."],["sudo usermod -aG labgroup student1","Group madhe add (itar groups kadhat nahi)."],
+  ["id student1","UID, primary GID, group memberships."],["groups student1","User che groups."],
+  ["sudo usermod -s /bin/bash student1","Login shell Bash set."],["getent passwd student1","Account record dakhavto."],
+  ["sudo userdel -r student1","User + home delete."],["sudo groupdel labgroup","Group delete."]]},
+ {t:"text",c:"UID/GID numbers vegle asu shaktat. Group aadhi asel tar <code>groupadd</code> “exists” sangel – navin test name vapra."},
+ {t:"h3",c:"Using sudo safely"},
+ {t:"viva",c:["sudo fakt garaj aslela commands sathi vapra.","Enter dabnyaadhi command nit vacha, khaas karun userdel -r.","Ajnat source cha command samjun ghyaiwaya shivay chalu naka.","Swatacha WSL user kiwa real system account delete karu naka.","useradd create; usermod modify; userdel delete; groupadd / groupdel group sathi."]}
+]});
+
+/* ---------- 9 ---------- */
+P.push({id:"p9",num:9,title:"First Fit, Best Fit and Worst Fit",aim:"Implement and compare three contiguous memory allocation strategies.",blocks:[
+ {t:"code",file:"p9.c",c:String.raw`#include <stdio.h>
+ 
+int main()
+{
+    int block[5] = {100, 500, 200, 300, 600};
+    int process[4] = {212, 417, 112, 426};
+    int b[5], i, j, best;
+ 
+    // FIRST FIT
+    for (i = 0; i < 5; i++)
+        b[i] = block[i];
+ 
+    printf("First Fit:\n");
+ 
+    for (i = 0; i < 4; i++)
+    {
+        for (j = 0; j < 5; j++)
+        {
+            if (b[j] >= process[i])
+            {
+                printf("%d -> Block %d\n", process[i], j + 1);
+                b[j] -= process[i];
+                break;
+            }
+        }
+ 
+        if (j == 5)
+            printf("%d -> Not allocated\n", process[i]);
+    }
+ 
+    // BEST FIT
+    for (i = 0; i < 5; i++)
+        b[i] = block[i];
+ 
+    printf("\nBest Fit:\n");
+ 
+    for (i = 0; i < 4; i++)
+    {
+        best = -1;
+ 
+        for (j = 0; j < 5; j++)
+        {
+            if (b[j] >= process[i])
+            {
+                if (best == -1 || b[j] < b[best])
+                    best = j;
+            }
+        }
+ 
+        if (best != -1)
+        {
+            printf("%d -> Block %d\n", process[i], best + 1);
+            b[best] -= process[i];
+        }
+        else
+            printf("%d -> Not allocated\n", process[i]);
+    }
+ 
+    // WORST FIT
+    for (i = 0; i < 5; i++)
+        b[i] = block[i];
+ 
+    printf("\nWorst Fit:\n");
+ 
+    for (i = 0; i < 4; i++)
+    {
+        best = -1;
+ 
+        for (j = 0; j < 5; j++)
+        {
+            if (b[j] >= process[i])
+            {
+                if (best == -1 || b[j] > b[best])
+                    best = j;
+            }
+        }
+ 
+        if (best != -1)
+        {
+            printf("%d -> Block %d\n", process[i], best + 1);
+            b[best] -= process[i];
+        }
+        else
+            printf("%d -> Not allocated\n", process[i]);
+    }
+ 
+    return 0;
+}`},
+ {t:"cmd",label:"Compile & run",c:String.raw`gcc p9.c -o p9
+./p9`},
+ {t:"text",c:"<b>Input (program madhech initialized):</b><br>Memory blocks: 100, 500, 200, 300, 600<br>Processes: 212, 417, 112, 426"},
+ {t:"out",label:"Output",c:String.raw`First Fit:
+212 -> Block 2
+417 -> Block 5
+112 -> Block 2
+426 -> Not allocated
+ 
+Best Fit:
+212 -> Block 4
+417 -> Block 2
+112 -> Block 3
+426 -> Block 5
+ 
+Worst Fit:
+212 -> Block 5
+417 -> Block 2
+112 -> Block 5
+426 -> Not allocated`},
+ {t:"table",h:["Algorithm","Rule","Example (212)"],r:[
+  ["First Fit","Pahila suitable block.","Block 2 (500); remaining 288"],
+  ["Best Fit","Sarvat lahan suitable block.","Block 4 (300); remaining 88"],
+  ["Worst Fit","Sarvat motha suitable block.","Block 5 (600); remaining 388"]]},
+ {t:"text",c:"Pratyek algorithm original block sizes pasun survat karto, mhanun tinhi results independent ahet."},
+ {t:"viva",c:["First Fit – survatipasun pahila yogya block.","Best Fit – sarvat lahan yogya block.","Worst Fit – sarvat motha yogya block.","“Not allocated” = konatach remaining block mothha nahi."]}
+]});
+
+/* ---------- 10 ---------- */
+P.push({id:"p10",num:10,title:"Banker’s Algorithm",aim:"Determine whether the system is in a safe state and display a safe sequence.",blocks:[
+ {t:"code",file:"p10.c",c:String.raw`#include <stdio.h>
+ 
+int main()
+{
+    int alloc[5][3] = {
+        {0, 1, 0},
+        {2, 0, 0},
+        {3, 0, 2},
+        {2, 1, 1},
+        {0, 0, 2}
+    };
+ 
+    int max[5][3] = {
+        {7, 5, 3},
+        {3, 2, 2},
+        {9, 0, 2},
+        {2, 2, 2},
+        {4, 3, 3}
+    };
+ 
+    int avail[3] = {3, 3, 2};
+    int need[5][3], finish[5] = {0};
+    int safe[5], i, j, k, count = 0, found;
+ 
+    // Need = Max - Allocation
+    for (i = 0; i < 5; i++)
+        for (j = 0; j < 3; j++)
+            need[i][j] = max[i][j] - alloc[i][j];
+ 
+    // Find a safe sequence
+    while (count < 5)
+    {
+        found = 0;
+ 
+        for (i = 0; i < 5; i++)
+        {
+            if (finish[i] == 0)
+            {
+                for (j = 0; j < 3; j++)
+                    if (need[i][j] > avail[j])
+                        break;
+ 
+                if (j == 3)
+                {
+                    for (k = 0; k < 3; k++)
+                        avail[k] += alloc[i][k];
+ 
+                    safe[count] = i;
+                    count++;
+                    finish[i] = 1;
+                    found = 1;
+                }
+            }
+        }
+ 
+        if (found == 0)
+            break;
+    }
+ 
+    if (count == 5)
+    {
+        printf("System is in SAFE state\n");
+        printf("Safe Sequence: ");
+ 
+        for (i = 0; i < 5; i++)
+            printf("P%d ", safe[i]);
+ 
+        printf("\n");
+    }
+    else
+        printf("System is NOT in safe state\n");
+ 
+    return 0;
+}`},
+ {t:"cmd",label:"Compile & run",c:String.raw`gcc p10.c -o p10
+./p10`},
+ {t:"table",h:["Process","Allocation (A B C)","Maximum (A B C)","Need (A B C)"],r:[
+  ["P0","0 1 0","7 5 3","7 4 3"],["P1","2 0 0","3 2 2","1 2 2"],["P2","3 0 2","9 0 2","6 0 0"],
+  ["P3","2 1 1","2 2 2","0 1 1"],["P4","0 0 2","4 3 3","4 3 1"]]},
+ {t:"text",c:"Initial Available = (3, 3, 2). Need = Max − Allocation."},
+ {t:"out",label:"Output",c:String.raw`System is in SAFE state
+Safe Sequence: P1 P3 P4 P0 P2`},
+ {t:"h3",c:"Dry run"},
+ {t:"viva",c:["Available (3,3,2). P1 need (1,2,2) ✔ → release (2,0,0) → Available (5,3,2).","P3 need (0,1,1) ✔ → release (2,1,1) → Available (7,4,3).","P4 need (4,3,1) ✔ → release (0,0,2) → Available (7,4,5).","P0 need (7,4,3) ✔ → release (0,1,0) → Available (7,5,5).","P2 need (6,0,0) ✔ → sagle 5 processes finish.","Safe sequence = asa kram jyat pratyek process finish hou shakte. Safe state = kimaan ek safe sequence.","Banker’s Algorithm resource allocation aadhi safety check karto."]}
+]});
+
+/* ---------- REVISION ---------- */
+P.push({id:"rev",num:"R",title:"Final Revision Sheet",aim:"Exam chya aadhi fast revision.",blocks:[
+ {t:"table",h:["Practical","Remember these commands / concepts"],r:[
+  ["1","pwd, ls, mkdir, cd, touch, echo, cat, cp, mv, rm"],["2","mkdir, cd, ls, touch, cat, cp, mv"],
+  ["3","chmod – permissions; chown – owner; chgrp – group"],["4","ps, ps -ef, top; PID; process states; PCB"],
+  ["5","open(), write(), read(), close(); compile with gcc"],["6","sort, grep, awk, wc, find"],
+  ["7","tar -cvf, tar -tf, gzip, gunzip, tar -xvf"],
+  ["8","groupadd, useradd, passwd, usermod, id, groups, getent, userdel, groupdel, sudo"],
+  ["9","First Fit = first suitable; Best Fit = smallest suitable; Worst Fit = largest suitable"],
+  ["10","Need = Max − Allocation; check Available; find safe sequence"]]},
+ {t:"h3",c:"General exam workflow"},
+ {t:"viva",c:["Aim liha.","Command-based practical: commands type kara ani output dakhva.","C practical: nano ne .c file banva.","Compile: gcc filename.c -o filename","Run: ./filename","Main logic samjava ani viva che prashna answer kara."]},
+ {t:"text",c:"<i>Sample outputs example ahet. PID, username, file path tumchya WSL var vegle asu shaktat.</i>"}
+]});
+
+/* ---------- GITHUB ---------- */
+P.push({id:"github",num:"G",title:"GitHub Var Upload + Link Kasa Ghyaycha",aim:"Hi index.html GitHub Pages var publish karun public link milva.",blocks:[
+ {t:"text",c:"<b>Step 1:</b> <a href='https://github.com/new' target='_blank' rel='noopener'>github.com/new</a> var jaun navin <b>Public</b> repository banva (nav: <code>ios-rm-practicals</code>)."},
+ {t:"text",c:"<b>Step 2 (sope – browser ne):</b> Repository madhe <i>“uploading an existing file”</i> → <code>index.html</code> drag-drop kara → <b>Commit changes</b>."},
+ {t:"text",c:"<b>Step 2 (kinva WSL madhun):</b> khalche commands vapra. <code>USERNAME</code> badla."},
+ {t:"cmd",label:"Git commands (WSL)",c:String.raw`sudo apt install git
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+ 
+mkdir -p ~/ios-rm-practicals
+cd ~/ios-rm-practicals
+# index.html ithe copy kara (Windows Downloads madhun):
+# cp /mnt/c/Users/WINDOWS_USERNAME/Downloads/index.html .
+ 
+git init
+git add index.html
+git commit -m "Add IOS & RM practicals guide"
+git branch -M main
+git remote add origin https://github.com/USERNAME/ios-rm-practicals.git
+git push -u origin main`},
+ {t:"text",c:"<b>Step 3 (link milvaycha):</b> Repo → <b>Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: main / (root) → Save</b>. 1–2 minute nantar tumcha link:"},
+ {t:"out",label:"Your live link",c:String.raw`https://USERNAME.github.io/ios-rm-practicals/`},
+ {t:"tip",c:"Push karta password vicharla tar GitHub <b>Personal Access Token</b> (Settings → Developer settings → Tokens) password mhanun vapra."}
+]});
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const toast = document.getElementById("toast");
+function copy(text, btn, label){
+  const done=()=>{ if(btn){const o=btn.textContent;btn.textContent="Copied ✔";btn.classList.add("ok");setTimeout(()=>{btn.textContent=o;btn.classList.remove("ok")},1400);}
+    toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),1100); };
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(text).then(done).catch(()=>fallback())}
+  else fallback();
+  function fallback(){const t=document.createElement("textarea");t.value=text;t.style.position="fixed";t.style.opacity=0;document.body.appendChild(t);t.select();try{document.execCommand("copy")}catch(e){}t.remove();done();}
+}
+
+function hlC(line){
+  let h=esc(line);
+  if(/^\s*#include/.test(line)) return h.replace(/(#include)(.*)/,'<span class="pp">$1</span><span class="s">$2</span>');
+  const ci=h.indexOf("//"); let cm="";
+  if(ci>-1){cm='<span class="c2">'+h.slice(ci)+'</span>';h=h.slice(0,ci);}
+  h=h.replace(/("(?:[^"\\]|\\.)*")/g,'\u0001$1\u0002').replace(/\b(int|char|return|for|while|if|else|break|void)\b/g,'<span class="k">$1</span>')
+     .replace(/\b(\d+)\b/g,'<span class="n">$1</span>').replace(/\u0001("(?:[^"\\]|\\.)*")\u0002/g,'<span class="s">$1</span>')
+     .replace(/\u0001|\u0002/g,"");
+  return h+cm;
+}
+
+function termBlock(kind,title,content,extra){
+  const wrap=document.createElement("div");
+  wrap.className="term "+kind;
+  const bar=document.createElement("div");bar.className="term-bar";
+  bar.innerHTML='<div class="dots"><span></span><span></span><span></span></div><div class="term-title"></div><div class="btns"></div>';
+  bar.querySelector(".term-title").textContent=title;
+  const btns=bar.querySelector(".btns");
+  const mk=(txt,fn,cls)=>{const b=document.createElement("button");b.className="btn "+(cls||"");b.textContent=txt;b.onclick=()=>copy(fn(),b);btns.appendChild(b);};
+  const raw=content;
+  if(kind==="cmd"){
+    mk("Copy",()=>raw.split("\n").filter(l=>!/^\s*#/.test(l)||true).map(l=>l.trim()===""?"":l).join("\n"));
+    mk("Copy (no comments)",()=>raw.split("\n").filter(l=>!/^\s*#/.test(l)).join("\n").replace(/\n{2,}/g,"\n"),"alt");
+  } else if(kind==="cpp"){
+    mk("Copy code",()=>raw);
+    mk("One-shot paste",()=>"cat > "+extra+" << 'EOF'\n"+raw+"\nEOF","alt");
+  } else mk("Copy",()=>raw);
+  const pre=document.createElement("pre");
+  pre.innerHTML=raw.split("\n").map(l=>{
+    const blank=l.trim()==="";
+    if(kind==="cmd"){const cm=/^\s*#/.test(l);return '<span class="line'+(cm?' cm':'')+(blank?' blank':'')+'">'+esc(l)+'</span>';}
+    if(kind==="cpp") return '<span class="line">'+hlC(l)+'</span>';
+    return '<span class="line">'+esc(l)+'</span>';
+  }).join("");
+  wrap.appendChild(bar);wrap.appendChild(pre);return wrap;
+}
+
+const main=document.getElementById("main"), side=document.getElementById("side");
+
+/* hero */
+main.insertAdjacentHTML("beforeend",`
+<div class="hero">
+ <h1>🐧 Intelligent Operating Systems &amp; Resource Management</h1>
+ <p>Practical Examination Guide — All 10 Practicals</p>
+ <p>WSL Ubuntu commands · Complete C programs · Sample outputs · Dry runs · Viva points</p>
+ <div class="chips"><span class="chip">10 Practicals</span><span class="chip">Copy-paste ready</span><span class="chip">WSL Ubuntu</span><span class="chip">GCC</span></div>
+</div>`);
+
+/* sidebar */
+let nav='<h4>Guide</h4>';
+P.forEach((p,i)=>{
+  if(p.id==="p1") nav+='<h4>Practicals</h4>';
+  if(p.id==="rev") nav+='<h4>Extras</h4>';
+  nav+=`<a href="#${p.id}" data-id="${p.id}"><b>${p.num}</b> ${esc(p.title)}</a>`;
+});
+side.innerHTML=nav;
+
+/* cards */
+P.forEach(p=>{
+  const sec=document.createElement("section");sec.className="card";sec.id=p.id;
+  sec.innerHTML=`<h2><span class="num">${p.num==="S"||p.num==="R"||p.num==="G"?p.num:"P"+p.num}</span>${esc(p.title)}</h2><p class="aim"><b>Aim:</b> ${esc(p.aim)}</p>`;
+  const allCmds=[];
+  p.blocks.forEach(b=>{
+    if(b.t==="text") sec.insertAdjacentHTML("beforeend",`<p class="t">${b.c}</p>`);
+    else if(b.t==="h3") sec.insertAdjacentHTML("beforeend",`<h3>${esc(b.c)}</h3>`);
+    else if(b.t==="warn") sec.insertAdjacentHTML("beforeend",`<div class="warn">⚠️ ${b.c}</div>`);
+    else if(b.t==="tip") sec.insertAdjacentHTML("beforeend",`<div class="tip">💡 ${b.c}</div>`);
+    else if(b.t==="viva") sec.insertAdjacentHTML("beforeend",`<h3>${p.id==="p5"?"Step-by-step explanation":p.id==="p10"?"Dry run &amp; viva":"Quick explanation / viva"}</h3><ul class="vl">${b.c.map(x=>`<li>${x.includes("<")?x:esc(x)}</li>`).join("")}</ul>`);
+    else if(b.t==="table"){
+      sec.insertAdjacentHTML("beforeend",`<div class="tw"><table><tr>${b.h.map(h=>`<th>${esc(h)}</th>`).join("")}</tr>${b.r.map(r=>`<tr>${r.map((c,i)=>`<td>${i===0&&p.id!=="p4"&&p.id!=="p9"&&p.id!=="p10"&&p.id!=="rev"?`<code>${esc(c)}</code>`:esc(c)}</td>`).join("")}</tr>`).join("")}</table></div>`);
+    }
+    else if(b.t==="cmd"){allCmds.push(b.c);sec.appendChild(termBlock("cmd","user@wsl: ~/iosrm — "+b.label,b.c));}
+    else if(b.t==="out") sec.appendChild(termBlock("out",b.label,b.c));
+    else if(b.t==="code"){sec.appendChild(termBlock("cpp",b.file+" — C source",b.c,b.file));}
+  });
+  main.appendChild(sec);
+});
+main.insertAdjacentHTML("beforeend",'<footer>IOS &amp; RM Practical Examination Guide · Made for WSL Ubuntu · Sample outputs may differ on your system.</footer>');
+
+/* sidebar interactions */
+const links=[...side.querySelectorAll("a")];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.toggle("active",l.dataset.id===e.target.id));}})},{rootMargin:"-30% 0px -60% 0px"});
+document.querySelectorAll("section.card").forEach(s=>io.observe(s));
+document.getElementById("menuBtn").onclick=()=>side.classList.toggle("open");
+links.forEach(l=>l.addEventListener("click",()=>side.classList.remove("open")));
+document.getElementById("top").onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
+
+/* search */
+document.getElementById("search").addEventListener("input",e=>{
+  const q=e.target.value.trim().toLowerCase();
+  document.querySelectorAll("section.card").forEach(s=>{
+    const show=!q||s.textContent.toLowerCase().includes(q);
+    s.style.display=show?"":"none";
+    const l=side.querySelector(`a[data-id="${s.id}"]`); if(l) l.style.display=show?"":"none";
+  });
+});
+</script>
+</body>
+</html>
